@@ -1,6 +1,7 @@
 package testing;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -56,17 +57,57 @@ public class SearchParamsTest {
 		// add the initial parameters
 		params.addParam(initialParameter, initialValue);
 	}
+	
+	/**
+	 * Adds five parameters, named 0, 1, 2, 3, 4, and five value
+	 * pairs, named 0, 1, 2, 3, 4, respectively, to the provided
+	 * FoursquareSearchParams instance
+	 * @param searchParams	the instance to add the parameters to
+	 */
+	private void addFiveParams(FoursquareSearchParams searchParams){
+		for (int index = 0; index < 5; index++){
+			params.addParam(index + "", index + "");
+		}
+	}
+	
+	/**
+	 * Modifies the five parameters added by addFiveParams() by adding
+	 * one to the value that was previously paired with its param
+	 * @param searchParams	the instance to modify the parameters in
+	 */
+	private void modifyFiveParams(FoursquareSearchParams searchParams){
+		for (int index = 0; index < 5; index++){
+			params.modifyParam(index + "", (index + 1) + "");
+		}
+	}
+	
+	/**
+	 * Removes the five parameters added by addFiveParams()
+	 * @param searchParams	the instance to remove the parameters from
+	 */
+	private void removeFiveParams(FoursquareSearchParams searchParams){
+		for (int index = 0; index < 5; index++){
+			params.removeParam(index + "");
+		}
+	}
 
 	/**
 	 * Tests the addition of a parameter to the search
 	 * parameters by checking to see if addParam (which
 	 * is called before every test) inserted the proper
-	 * values correctly
+	 * values correctly. Then, check to be sure that inserting
+	 * multiple values works as intended, and finally attempt
+	 * to add a value that already exists
 	 */
-	@Test
+	@Test (expected = IllegalArgumentException.class)
 	public void addParamTest() {
 		assertTrue("Parameter added successfully", 
 				   		params.toString().contains("\"" + initialParameter + "\" : " + "\"" + initialValue + "\""));
+		addFiveParams(params);
+		// check to make sure that the five parameters above and the initial parameter exist
+		assertTrue("Multiple values added successfully", params.getSearchParams().size() == 6);
+		// cause an error
+		params.addParam(initialParameter, initialValue);
 	}
 	
 	/**
@@ -80,6 +121,14 @@ public class SearchParamsTest {
 		params.modifyParam(initialParameter, modifiedValue);
 		assertTrue("Parameter modified successfully",
 						params.toString().contains("\"" + initialParameter + "\" : " + "\"" + modifiedValue + "\""));
+		addFiveParams(params);
+		modifyFiveParams(params);
+		// check to make sure that the parameters were modified correctly, by testing
+		// one at random for correctness
+		int randomIndexToTest = (int)(Math.random() * 6);
+		assertTrue("Multiple parameters modified successfully", 
+						params.getSearchParams().get(randomIndexToTest + "").equals((randomIndexToTest + 1) + ""));
+		// cause an error
 		params.modifyParam(nonexistentParameter, modifiedValue);
 	}
 	
@@ -94,7 +143,12 @@ public class SearchParamsTest {
 		params.removeParam(initialParameter);
 		assertTrue("Parameter removed successfully", 
 		   		!params.toString().contains("\"" + initialParameter + "\" : " + "\"" + initialValue + "\""));
-		System.out.println(params);
+		// add and remove five parameters
+		addFiveParams(params);
+		removeFiveParams(params);
+		// check to make sure that all parameters are gone
+		assertTrue("Multiple parameters removed successfully", params.getSearchParams().size() == 0);
+		// cause an error
 		params.removeParam(initialParameter);
 	}
 

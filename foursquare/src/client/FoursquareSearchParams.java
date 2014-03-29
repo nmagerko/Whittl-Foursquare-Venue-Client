@@ -36,7 +36,12 @@ public class FoursquareSearchParams {
 	 * @param value of the parameter to add
 	 */
 	public void addParam(String param, String value){
-		searchParams.put(param, value);
+		if (!searchParams.containsKey(param)){
+			searchParams.put(param, value);
+		}
+		else {
+			throw new IllegalArgumentException("Parameter \"" + param + "\" already exists in search parameters.");
+		}
 	}
 	
 	/**

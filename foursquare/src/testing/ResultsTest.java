@@ -1,6 +1,7 @@
 package testing;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileReader;
@@ -9,15 +10,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import fi.foyt.foursquare.api.entities.CompactVenue;
-import flexjson.JSONDeserializer;
-
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import client.FoursquareResult;
+import fi.foyt.foursquare.api.entities.CompactVenue;
+import flexjson.JSONDeserializer;
 
+/**
+ * Tests the functionality of the FoursquareResult class,
+ * using pre-generated data to avoid interacting with the
+ * client class itself
+ * @author Nick Magerko
+ *
+ */
 public class ResultsTest {
 	// the number of results in the input file
 	private static final int EXPECTED_NUMBER_OF_RESULTS = 15;
@@ -29,7 +36,7 @@ public class ResultsTest {
 	private FoursquareResult results;
 
 	/**
-	 * Sets up the unit test by getting the data from an already-
+	 * Sets up the unit tests by getting the data from an already-
 	 * executed search, and storing it in a CompactVenue array
 	 * @throws Exception
 	 */
@@ -50,7 +57,7 @@ public class ResultsTest {
 	
 	/**
 	 * Sets up each unit test by recreating the results from the
-	 * data that is loaded from initialization()
+	 * data that are loaded from initialization()
 	 * @throws Exception
 	 */
 	@Before
@@ -63,7 +70,8 @@ public class ResultsTest {
 
 	/**
 	 * Tests to be sure that the FoursquareResult contains the correct
-	 * number of results
+	 * number of results, and was therefore initialized correctly (beyond
+	 * just being not null)
 	 */
 	@Test
 	public void resultAmountTest(){
@@ -73,12 +81,13 @@ public class ResultsTest {
 	}
 	
 	/**
-	 * Tests to be sure that the proper Foursquare results are contained
-	 * in the FoursquareResult instance, and that there are no duplicates
-	 * in the results
+	 * Tests to be sure that the proper Foursquare results are returned
+	 * by the FoursquareResult instance's related function. This includes
+	 * checking to be sure that the input/output data are similar (and
+	 * therefore aids in checking the content of the Business class too)
 	 */
 	@Test
-	public void fidelityTest() {
+	public void resultsContentTest() {
 		List<String> resultsList = results.getResults();
 		// check to make sure that the unique Foursquare ID field is in both the input 
 		// and the resultsList. Keep track of the indices that are tested, to make sure 
@@ -86,6 +95,7 @@ public class ResultsTest {
 		Set<Integer> resultsTested = new HashSet<>();
 		boolean businessMatchFound = false;
 		for (CompactVenue business : rawVenueResults){
+			// loop through the resultsList, checking for a match
 			for (int index = 0; index < resultsList.size(); index++){
 				if (resultsList.get(index).contains(business.getId())){
 					businessMatchFound = true;

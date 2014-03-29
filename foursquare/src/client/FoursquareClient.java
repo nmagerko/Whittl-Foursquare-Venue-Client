@@ -2,10 +2,13 @@ package client;
 
 import java.util.Map;
 
-import fi.foyt.foursquare.api.*;
+import exceptions.RequiredSearchParamsNotSet;
+import exceptions.SearchResultError;
+import exceptions.SearchResultsEmpty;
+import fi.foyt.foursquare.api.FoursquareApi;
+import fi.foyt.foursquare.api.FoursquareApiException;
+import fi.foyt.foursquare.api.Result;
 import fi.foyt.foursquare.api.entities.VenuesSearchResult;
-
-import flexjson.JSONSerializer;
 
 /**
  * Serves as the client through which an entity could provide
@@ -14,7 +17,7 @@ import flexjson.JSONSerializer;
  * @author Nick Magerko
  */
 public class FoursquareClient {
-	// the response that should be obtained by a Foursquare (or really any) query
+	// the response that should be obtained by a Foursquare (or really any) successful query
 	private final int HTTP_OK = 200;
 	// the API instance that will control the information flow in all queries/responses
 	private FoursquareApi API;
@@ -59,10 +62,13 @@ public class FoursquareClient {
 					 searchResults.getMeta().getErrorDetail()
 					);
 		}
-		// return a new instance of a FoursquareResult (initialized with the venues
-		// that resulted from the search)
-		JSONSerializer s = new JSONSerializer();
-		System.out.println(s.deepSerialize(searchResults.getResult().getVenues()));
+		// check to be sure that there are results to pass, or throw an exception
+		if (searchResults.getResult().getVenues().length == 0){
+			throw new SearchResultsEmpty(
+					"The venues search did not return any results. A FoursquareResult was not created."
+					);
+		}
+		// otherwise, return a new instance of a FoursquareResult
 		return new FoursquareResult(searchResults.getResult().getVenues());
 	}
 	
@@ -79,32 +85,4 @@ public class FoursquareClient {
 		}
 		return false;
 	}
-}
-
-/**
- * A subclass of RuntimeException, alerting the entity utilizing
- * the search capabilities that the parameters required for a search is missing
- * @author Nick Magerko
- */
-class RequiredSearchParamsNotSet extends RuntimeException {
-	// evidently, this is necessary if we ever decide
-	// to serialize this class
-	private static final long serialVersionUID = 3432998049562053870L;
-	// the remainder simply calls the super class's
-	// constructor to get the error info to the user
-	public RequiredSearchParamsNotSet() { super(); }
-	public RequiredSearchParamsNotSet(String description) { super(description); }
-}
-
-/**
- * A subclass of RuntimeException, alerting the entity utilizing
- * the search capabilities that the search results contained an error 
- * @author Nick Magerko
- */
-class SearchResultError extends RuntimeException {
-	// once again, for purposes of serialization
-	private static final long serialVersionUID = 8278881970410698844L;
-	// and then make calls to super class
-	public SearchResultError() { super(); }
-	public SearchResultError(String description) { super(description); }
 }
