@@ -1,0 +1,18 @@
+I would like to explain my decision to make these data models public, and also to make
+a comment on why some models (such as business hours) are not present.
+
+I felt as though it would be more practical for me to make these classes public, since
+I wanted the user to be able to pick which data they wanted from each individual Business
+instance they received from the FoursquareResults class. Additionally, it appeared to me
+as though it would be very difficult for the client to get specific results from the
+FoursquareResults class if these classes were available only to FoursquareResults. Also
+note that these classes need only have getter/setter functions for use by flexJSON, and
+this is the reason for the model classes' minimal commenting and empty constructors.
+
+With respect to the absence of certain (and in my opinion, very pertinent) models, I 
+have found that the "optional" business hours data, for example, does not appear in the
+venue search results, even for established businesses such as Starbucks. This is despite
+my attempts to retrieve these optional data even while using OAuth (I was not previously).
+I have a feeling that I am using a different search method than the Foursquare API expects
+in order for it to return these "optional" data, but I have no proof of where my method
+is incorrect (yet).
