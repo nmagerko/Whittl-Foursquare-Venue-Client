@@ -16,9 +16,6 @@ import flexjson.JSONSerializer;
  *
  */
 public class FoursquareResult {
-	// the JSON serializer and deserializer
-	private static JSONDeserializer<?> deserializer = new JSONDeserializer<>();
-	private static JSONSerializer serializer = new JSONSerializer();
 	// the search results, as Business objects
 	List<Business> businesses;
 	
@@ -27,30 +24,26 @@ public class FoursquareResult {
 	 * JSON response string
 	 * @param queryResponse	the JSON response from Foursquare
 	 */
-	@SuppressWarnings("unchecked")
 	public FoursquareResult(String queryResponse) {
-		// get the headers from the query's response
-		Map<String, Map<String, ArrayList<Object>>> headers = (Map<String, Map<String, ArrayList<Object>>>) deserializer.deserialize(queryResponse);
-		// check to make sure that the structure has not changed from what was expected
-		if (headers.get("response").get("venues") == null){
-			throw new UnexpectedFormatException("Expected \"response\" header object containing list of \"venues,\" but found different structure:\n"
-												+ serializer.deepSerialize(headers));
-		}
-		// if there are no venues, just create an empty ArrayList
-		if (headers.get("response").get("venues").size() == 0){
-			businesses = new ArrayList<>();
-		}		
-		// get the response header and the venues that compose it, and convert each venue into a Business
-		// assign the result to the businesses 
-		try {
-			businesses = (ArrayList<Business>) deserializer.use("values", Business.class).deserialize(serializer.deepSerialize(headers.get("response").get("venues")));	
-		}
-		catch (IllegalArgumentException exception){
-			// need to do some testing to figure out why this would happen
-			System.out.println("Error!");
-		}
-		finally {
-			System.out.println(serializer.deepSerialize(headers.get("response").get("venues")));
+		// the list of businesses in the query response
+		businesses = new ArrayList<>();
+		// if the query failed, do not add anything to the array
+		if (!queryResponse.equals("")){
+			// deserialize the response so that the venues can be accessed
+			Map<String, Map<String, ArrayList<Map<String, Object>>>> deserializedResponse = new JSONDeserializer<Map<String, Map<String, ArrayList<Map<String, Object>>>>>().deserialize(queryResponse);
+			// check to be sure that the format of the response is not different than was expected
+			if (deserializedResponse.get("response").get("venues") == null) {
+				System.err.println("The format of the query response was different than expected. The response's header objects were assumed to be [\"meta\", \"notifications\", \"response\"]\n"
+									+ "but the header objects " + deserializedResponse.keySet() + " were found instead. The FoursquareResult will contain no entries.");
+			}
+			else {
+				// for each venue, reserialize the String, and then deserialize it into a Business object
+				// add the new object to the list of businesses
+				for (Map<String, Object> venue : deserializedResponse.get("response").get("venues")){
+					Business business = new JSONDeserializer<Business>().deserialize(new JSONSerializer().deepSerialize(venue), Business.class);
+					businesses.add(business);
+				}
+			}
 		}
 	}
 	
@@ -64,8 +57,9 @@ public class FoursquareResult {
 	}
 	
 	/**
-	 * Allows the client to access each result individually, when
-	 * he or she provides the result number that they would like to access
+	 * Allows the user to access each result individually, when
+	 * he or she provides the result number that he or she would like to access.
+	 * Note that results are numbered from 1 to N
 	 * @param resultNumber	the result to access
 	 * @return	the Business object at that number
 	 */
@@ -75,16 +69,4 @@ public class FoursquareResult {
 		}
 		return businesses.get(resultNumber-1);
 	}
-}
-
-/**
- * Alerts the user that the format of the JSON
- * string is different that what was expected
- * @author Nick Magerko
- *
- */
-class UnexpectedFormatException extends RuntimeException {
-	private static final long serialVersionUID = -4589374284099677509L;
-	public UnexpectedFormatException() { super(); }
-	public UnexpectedFormatException(String description) { super(description); }
 }

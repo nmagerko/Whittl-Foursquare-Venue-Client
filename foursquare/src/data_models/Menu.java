@@ -4,6 +4,7 @@ package data_models;
  * Holds the menu information for a business
  * (This may or may not be useful to Whittl, but
  * I included as many models as I could)
+ * See https://developer.foursquare.com/docs/responses/venue
  * @author Nick Magerko
  *
  */

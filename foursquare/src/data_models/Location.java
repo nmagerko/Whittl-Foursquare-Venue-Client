@@ -2,6 +2,7 @@ package data_models;
 
 /**
  * Contains the location information about a business
+ * See https://developer.foursquare.com/docs/responses/venue
  * @author Nick Magerko
  *
  */

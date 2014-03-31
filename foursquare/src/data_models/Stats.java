@@ -3,6 +3,7 @@ package data_models;
 /**
  * Contains the "stats" about a business, data
  * that may be useful in evaluating popularity/quality
+ * See https://developer.foursquare.com/docs/responses/venue
  * @author Nick Magerko
  *
  */

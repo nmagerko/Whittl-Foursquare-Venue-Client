@@ -54,42 +54,34 @@ public class FoursquareClient {
 	}
 	
 	/**
-	 * Allows the client access to the user's personal information
-	 * (not necessary for venue searches, yet could be helpful in the future)
-	 * Note that this is a public method, since the user may need to 
-	 * revalidate if something went wrong
-	 */
-	public void validateClient(){
-		// get Foursquare's authorization url
-		String authorizationURL = service.getAuthorizationUrl(EMPTY_TOKEN);
-		// prompt the user to get his/her request token, and put it into a "verifier" instance
-		System.out.print("Please copy and paste the following URL into your browser:\n"
-						 + authorizationURL + "\n\n"
-						 + "After you accept, you will be redirected to http://example.com/?code=[XXXX]2#_=_ where [XXXX] is called the request token.\n"
-						 + "Paste the request token here: ");
-		Verifier verifier = new Verifier(scanner.nextLine());
-		System.out.println();
-		// Scribe will throw an org.scribe.exceptions.OAuthException if the inputed request token is faulty
-		accessToken = service.getAccessToken(EMPTY_TOKEN, verifier);
-		// if no exception is thrown, the program will continue and the access token has been recieved
-	}
-	
-	/**
 	 * Allows for the querying of Foursquare's venue database,
 	 * given the proper search parameters
 	 * @param params	the parameters to search with
 	 * @return	a FoursquareResult instance, representing the businesses that were returned
 	 */
 	public FoursquareResult venueSearch(FoursquareSearchParams params){
+		// how many time the client has failed to validate (this helps to make the output prettier)
+		int failureCount = 0;
 		// if the access token is null (this is very unlikely), ask the user to revalidate
+		// there is really no way around asking for validation again
 		if (accessToken == null){
-			throw new ValidationException("The client must be validated before it will search for venues");
+			while (accessToken == null){
+				if (failureCount == 0){	
+					// if this is the first failure, print the validation requirement, and increment failureCount (this only needs to be done once)
+					System.err.println("The client must be validated before it will search for venues. Please revalidate. \n");
+					failureCount++;
+				}
+				validateClient();
+			}
 		}
 		// if the search parameters are not valid, tell the user why
+		// do not automatically set these parameters, or the user may believe that all is well, even if an error is printed
 		if (!params.searchParamsValid()){
-			throw new RequiredSearchParamsNotSet(
-					"Neither the \"ll\" parameter nor the \"near\" parameter was found in conjunction with the \"query\" parameter.\n" +
-					"Consult https://developer.foursquare.com/docs/venues/search for more information.");
+			System.err.println(
+					"Warning: Neither the \"ll\" parameter nor the \"near\" parameter was found in conjunction with the \"query\" parameter.\n"
+					+ "Consult https://developer.foursquare.com/docs/venues/search for more information. Note that the FoursquareResult \n" 
+					+ "will contain no entries");
+			return new FoursquareResult("");
 		}
 		// otherwise, create a new GET request for the venues
 		OAuthRequest request = new OAuthRequest(Verb.GET, requestURLBuilder(params.getSearchParams()));
@@ -98,12 +90,41 @@ public class FoursquareClient {
 		// and send it
 		Response response = request.send();
 		// if there was an issue with the request, alert the user
+		// return a FoursquareResult initialized with an empty String (the class will take care of this case)
 		if (response.getCode() != HTTP_OK){
-			throw new ResponseException("The request returned with HTTP code " + response.getCode() + ".\n"
-										+ "The response was: " + response.getBody());
+			System.err.println("Warning: The request returned with HTTP code " + response.getCode() + ".\n"
+								+ "The response was: " + response.getBody() + "\n"
+								+ "Note that the FoursquareResult will contain no entries.");
+			return new FoursquareResult("");
 		}
-		// otheerwise, return the result
+		// otherwise, return the result with the full body
 		return new FoursquareResult(response.getBody());
+	}
+	
+	/**
+	 * Allows the client access to the user's personal information
+	 * (not necessary for venue searches, yet could be helpful in the future)
+	 */
+	private void validateClient(){
+		// get Foursquare's authorization url
+		String authorizationURL = service.getAuthorizationUrl(EMPTY_TOKEN);
+		// prompt the user to get his/her request token, and put it into a "verifier" instance
+		System.out.print("Please copy and paste the following URL into your browser:\n"
+						 + authorizationURL + "\n\n"
+						 + "After you accept, you will be redirected to http://example.com/?code=[XXXX]2#_=_ where [XXXX] is called the request token.\n"
+						 + "Paste the request token here: ");
+		try {
+			Verifier verifier = new Verifier(scanner.nextLine());
+			System.out.println();
+			// Scribe will throw an org.scribe.exceptions.OAuthException if the inputed request token is faulty
+			accessToken = service.getAccessToken(EMPTY_TOKEN, verifier);
+			// if no exception is thrown, the program will continue and the access token has been received
+		}
+		catch (Exception exception){
+			// otherwise, tell the user that they will have to sign in when they search
+			System.err.println("Warning: An error occurred during validation (check your request token?). Any searches requested will require a successful validation, \n"
+								+ "which may be performed at a later time. \n");
+		}
 	}
 	
 	/**
@@ -120,53 +141,24 @@ public class FoursquareClient {
 		return requestURL;
 	}
 	
-	/**
-	 * Alerts the user that the client had an issue with validating itself
-	 * @author Nick Magerko
-	 *
-	 */
-	class ValidationException extends RuntimeException {
-		private static final long serialVersionUID = 6307904175088389249L;
-		public ValidationException() { super(); }
-		public ValidationException(String description) { super(description); }
-	}
-	
-	/**
-	 * Alerts the user that the client found an error in the query response
-	 * @author Nick Magerko
-	 *
-	 */
-	class ResponseException extends RuntimeException {
-		private static final long serialVersionUID = -3427122580503963151L;
-		public ResponseException() { super(); }
-		public ResponseException(String description) { super(description); }
-	}
-	
-	/**
-	 * Alerts the user that the client found one or more missing parameters
-	 * @author Nick Magerko
-	 *
-	 */
-	class RequiredSearchParamsNotSet extends RuntimeException {
-		private static final long serialVersionUID = -756232409751936198L;
-		public RequiredSearchParamsNotSet() { super(); }
-		public RequiredSearchParamsNotSet(String description) { super(description); }
-		
-	}
-	
-	/* For quick and dirty testing only */
+	/* For quick testing only */
 	public static void main(String[] args){
+		
 		FoursquareSearchParams params = new FoursquareSearchParams();
-		params.setQuery("Donuts");
-		params.setQueryNear("Chicago,IL");
+		params.setQuery("Whittl");
+		params.setLatLong(41.895513, -87.636626);
 		params.setLimit(10);
 		
 		FoursquareClient client = new FoursquareClient();
 		FoursquareResult results = client.venueSearch(params);
 		
-		for (int i = 1; i < results.getNumberOfResults(); i++){
-			System.out.println(results.getResult(i).getId());
-			
+		if (results.getNumberOfResults() > 0){
+			for (int i = 1; i <= results.getNumberOfResults(); i++){
+				// check to make sure the result is not null!!
+				System.out.println(i + " " + results.getResult(i).getId() + " - " + results.getResult(i).getName());
+				
+			}
 		}
+		else { System.out.println("No results returned"); }
 	}
 }

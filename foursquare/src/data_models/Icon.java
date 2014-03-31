@@ -4,6 +4,7 @@ package data_models;
  * Contains a business's category icon, with the
  * main URL of the image in "prefix" and the file
  * extension in "suffix"
+ * See https://developer.foursquare.com/docs/responses/venue
  * @author Nick Magerko
  *
  */

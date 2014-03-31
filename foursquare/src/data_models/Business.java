@@ -9,7 +9,9 @@ import java.util.List;
  * returned by the Foursquare API after a venue 
  * search. Note that some fields are returned as
  * arrays - this is a personal preference that should
- * not affect performance
+ * not affect performance. Additionally, some fields
+ * (including objects) may be null, due to a lack of information
+ * See: https://developer.foursquare.com/docs/responses/venue
  * @author Nick Magerko
  *
  */
@@ -18,12 +20,14 @@ public class Business{
 	String name;
 	Contact contact;
 	Location location;
+	// created as a List, since it is not known how many (if any) categories will be returned
 	List<Category> categories = new ArrayList<Category>();
 	boolean verified;
 	Stats stats;
 	String url;
+	Hours hours;
 	Menu menu;
-	Specials specials;
+	//Specials specials;
 	HereNow hereNow;
 	String storeId;
 	String referralId;
@@ -38,8 +42,9 @@ public class Business{
 	public boolean isVerified() { return verified; }
 	public Stats getStats() { return stats; }
 	public String getUrl() { return url; }
+	public Hours getHours() {return hours; }
 	public Menu getMenu() { return menu; }
-	public Specials getSpecials() {	return specials; }
+	//public Specials getSpecials() {	return specials; }
 	public HereNow getHereNow() { return hereNow; }
 	public String getStoreId() { return storeId; }
 	public String getReferralId() { return referralId; }
@@ -48,7 +53,8 @@ public class Business{
 	public void setName(String name) { this.name = name; }
 	public void setContact(Contact contact) { this.contact = contact; }
 	public void setLocation(Location location) { this.location = location; }
-	public void addCategories(Category[] categories) { 
+	public void setCategories(Category[] categories) { 
+		this.categories.clear();
 		for (Category category : categories){
 			this.categories.add(category);
 		}
@@ -56,8 +62,9 @@ public class Business{
 	public void setVerified(boolean verified) { this.verified = verified; }
 	public void setStats(Stats stats) { this.stats = stats; }
 	public void setUrl(String url) { this.url = url; }
+	public void setHours(Hours hours){ this.hours = hours; }
 	public void setMenu(Menu menu) { this.menu = menu; }
-	public void setSpecials(Specials specials) { this.specials = specials; }
+	//public void setSpecials(Specials specials) { this.specials = specials; }
 	public void setHereNow(HereNow hereNow) { this.hereNow = hereNow; }
 	public void setStoreId(String storeId) { this.storeId = storeId; }
 	public void setReferralId(String referralId) { this.referralId = referralId; }

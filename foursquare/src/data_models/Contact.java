@@ -3,6 +3,7 @@ package data_models;
 /**
  * Contains a business's contact information
  * (including some social media sites)
+ * See https://developer.foursquare.com/docs/responses/venue
  * @author Nick Magerko
  *
  */
