@@ -6,6 +6,7 @@ import java.util.Map;
 
 import data_models.Business;
 import flexjson.JSONDeserializer;
+import flexjson.JSONException;
 import flexjson.JSONSerializer;
 
 /**
@@ -29,19 +30,49 @@ public class FoursquareResult {
 		businesses = new ArrayList<>();
 		// if the query failed, do not add anything to the array
 		if (!queryResponse.equals("")){
-			// deserialize the response so that the venues can be accessed
-			Map<String, Map<String, ArrayList<Map<String, Object>>>> deserializedResponse = new JSONDeserializer<Map<String, Map<String, ArrayList<Map<String, Object>>>>>().deserialize(queryResponse);
-			// check to be sure that the format of the response is not different than was expected
-			if (deserializedResponse.get("response").get("venues") == null) {
-				System.err.println("The format of the query response was different than expected. The response's header objects were assumed to be [\"meta\", \"notifications\", \"response\"]\n"
-									+ "but the header objects " + deserializedResponse.keySet() + " were found instead. The FoursquareResult will contain no entries.");
+			// deserialize the response so that the venues can be accessed, if possible
+			Map<String, Map<String, ArrayList<Map<String, Object>>>> deserializedResponse = null;
+			boolean allJSONParsed = true;
+			try {
+				deserializedResponse = new JSONDeserializer<Map<String, Map<String, ArrayList<Map<String, Object>>>>>().deserialize(queryResponse);
 			}
-			else {
-				// for each venue, reserialize the String, and then deserialize it into a Business object
-				// add the new object to the list of businesses
-				for (Map<String, Object> venue : deserializedResponse.get("response").get("venues")){
-					Business business = new JSONDeserializer<Business>().deserialize(new JSONSerializer().deepSerialize(venue), Business.class);
-					businesses.add(business);
+			catch (JSONException exception){
+				System.err.println("A portion of the JSON could not be parsed. The parser claims:\n"
+						+ exception.getMessage() + "\n"
+						+ "All results up to this point (if any) have been stored.");
+						allJSONParsed = false;
+			}
+			if (allJSONParsed){
+				// check to be sure that the format of the response is not different than was expected
+				// if it was, don't continue, as before
+				boolean formatCorrect = true;
+				try {
+					deserializedResponse.get("response").get("venues");
+				}
+				catch (Exception exception){
+					System.err.println("The format of the query response was different than expected. The response's header objects were assumed to be [\"meta\", \"notifications\", \"response\"]\n"
+										+ "but the header objects " + deserializedResponse.keySet() + " were found instead. Note that this FoursquareResult will contain no entries.");
+					formatCorrect = false;
+				}
+				if (formatCorrect) {
+					// for each venue, reserialize the String, and then deserialize it into a Business object
+					// add the new object to the list of businesses, if possible
+					for (Map<String, Object> venue : deserializedResponse.get("response").get("venues")){
+						Business newBusiness = null;
+						boolean businessJSONParsed = true;
+						try {
+							newBusiness = new JSONDeserializer<Business>().deserialize(new JSONSerializer().deepSerialize(venue), Business.class);
+						}
+						catch (JSONException exception){
+							System.err.println("A portion of the JSON could not be parsed. The parser claims:\n"
+												+ exception.getMessage() + "\n"
+												+ "All results up to this point (if any) have been stored.");
+							businessJSONParsed = false;
+						}
+						if (businessJSONParsed){
+							businesses.add(newBusiness);
+						}
+					}
 				}
 			}
 		}
@@ -64,8 +95,12 @@ public class FoursquareResult {
 	 * @return	the Business object at that number
 	 */
 	public Business getResult(int resultNumber){
+		// if the user tries to access a result that doesn't exist, warn them of the result
 		if (resultNumber > getNumberOfResults() || resultNumber <= 0){
-			throw new IllegalArgumentException("The resultNumber must be between one and the integer returned by getNumberOfResults(), inclusive.");
+			System.err.println("Warning: the resultNumber must be between one and the integer returned by getNumberOfResults(), inclusive.\n"
+								+ "Be aware that the result will be null.");
+			Business nullBusiness = null;
+			return nullBusiness;
 		}
 		return businesses.get(resultNumber-1);
 	}
