@@ -68,7 +68,7 @@ public class FoursquareSearchParams {
 		if (searchParams.get("ll") != ""){
 			searchParams.put("ll", "");
 		}
-		searchParams.put("near", strip(location));
+		searchParams.put("near", location);
 	}
 	
 	/**
@@ -92,7 +92,7 @@ public class FoursquareSearchParams {
 	public String getQuery(){ return searchParams.get("query"); }
 	
 	/**
-	 * Sets the number of results to return (up to 50)
+	 * Sets the number of results to return (up to 50).
 	 * @param limit the number of results to return up to 50
 	 */
 	public void setLimit(int limit){
@@ -109,10 +109,19 @@ public class FoursquareSearchParams {
 	}
 	
 	/**
-	 * Provides the number of results to return
+	 * Provides the number of results to return. Zero is returned
+	 * if the value is not set.
 	 * @return	the number of results to return
 	 */
-	public Integer getLimit() { return Integer.parseInt(searchParams.get("limit")); }
+	public Integer getLimit() { 
+		try {
+			return Integer.parseInt(searchParams.get("limit"));
+		}
+		// if there is no value, return the default
+		catch (Exception exception){
+			return 0;
+			}
+		}
 	
 	/**
 	 * Sets the intent of the search
@@ -152,10 +161,19 @@ public class FoursquareSearchParams {
 	}
 	
 	/**
-	 * Provides the radius of the query
+	 * Provides the radius of the query. Zero is returned if 
+	 * no value is set
 	 * @return	the radius of the query (in meters)
 	 */
-	public Integer getRadius(){ return Integer.parseInt(searchParams.get("radius")); }
+	public Integer getRadius(){ 
+		try {
+			return Integer.parseInt(searchParams.get("radius"));
+		}
+		// if there is no value, return the default
+		catch (Exception exception){
+			return 0;
+		}
+	}
 	
 	/**
 	 * Sets the south-west corner of a rectangle around which to bound the results
@@ -210,11 +228,12 @@ public class FoursquareSearchParams {
 	/**
 	 * Provides a URL that Foursquare will attempt to 
 	 * match locations to
-	 * @param URL	a URL to match locations to, beginning with http://
+	 * @param URL	a URL to match locations to, beginning with http:// or https://
 	 */
 	public void setURL(String URL){
 		// check to see if the URL is properly formatted
-		if (!URL.contains("http://") || !URL.contains("https://")){
+		if (!(URL.contains("http://") || URL.contains("https://"))){
+			System.err.println("URL did not have proper http:// or https:// prefix. Prepending http://");
 			URL = new String("http://" + URL);
 		}
 		searchParams.put("url", URL);
