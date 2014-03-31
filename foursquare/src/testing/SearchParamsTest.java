@@ -132,4 +132,15 @@ public class SearchParamsTest {
 		searchParams.setURL("https://whittl.com");
 		assertTrue("Normal URL parameter setting works for https:// prefix", searchParams.getURL().equals("https://whittl.com"));
 	}
+	
+	@Test
+	public void paramValidatorTest(){
+		assertTrue("Initial parameter list not valid (requires a location and query)", !searchParams.searchParamsValid());
+		searchParams.setQuery("Whittl");
+		assertTrue("Query-only parameter list not valid", !searchParams.searchParamsValid());
+		searchParams.setLatLong(41.895513, -87.636626);
+		assertTrue("Query and lat/lng are valid", searchParams.searchParamsValid());
+		searchParams.setQueryNear("Chicago, IL");
+		assertTrue("Query and near-location are valid", searchParams.searchParamsValid());
+	}
 }
