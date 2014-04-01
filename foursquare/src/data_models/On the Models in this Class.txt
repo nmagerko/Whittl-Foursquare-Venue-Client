@@ -1,0 +1,15 @@
+I would like to comment on the following:
+1) Making the classes in this package public
+2) Including the models that I did
+
+With respect to the first point, I made these classes public in order to
+ensure that there would be no conflicts with flexJSON's parsing into
+these objects, as well as to make sure that the user of the client has
+full access to the information in each Business, since he or she may need
+to extract/move this information.
+
+I included all models that I could create from the venue search response, as specified
+on Foursquare's developer documentation, including some that I found are virtually
+never returned (Hours, for example). These models are included generally without JavaDocs,
+since I included a link to the most relevant docs that describe each object and its attributes
+in the JavaDoc that summarizes each class.
