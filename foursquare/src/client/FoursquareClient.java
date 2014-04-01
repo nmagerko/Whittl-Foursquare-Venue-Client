@@ -139,25 +139,4 @@ public class FoursquareClient {
 		}
 		return requestURL;
 	}
-	
-	/* For quick testing only */
-	public static void main(String[] args){
-		
-		FoursquareSearchParams params = new FoursquareSearchParams();
-		params.setQuery("Whittl");
-		params.setLatLong(41.895513, -87.636626);
-		params.setLimit(10);
-		
-		FoursquareClient client = new FoursquareClient();
-		FoursquareResult results = client.venueSearch(params);
-		
-		if (results.getNumberOfResults() > 0){
-			for (int i = 1; i <= results.getNumberOfResults(); i++){
-				// check to make sure the result is not null!!
-				System.out.println(i + " " + results.getResult(i).getId() + " - " + results.getResult(i).getName());
-				
-			}
-		}
-		else { System.out.println("No results returned"); }
-	}
 }
