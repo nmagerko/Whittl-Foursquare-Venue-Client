@@ -9,7 +9,11 @@ import client.FoursquareResult;
 
 /**
  * Tests the functionality of the FoursquareResult
- * class.
+ * class. Note that the setters/getters of the Business
+ * class and its related models are not tested directly.
+ * This is because JSON would throw an exception if it could
+ * not get/set the values correctly, and this would show up
+ * as an error (null value) in the tests below
  * @author Nick Magerko
  *
  */
@@ -27,6 +31,10 @@ public class ResultsTest {
 	private static String improperFormatQueryResponse;
 	private FoursquareResult results;
 	
+	/**
+	 * Initializes all of the class fields, doing so only once
+	 * since this data will not change during the testing process
+	 */
 	@BeforeClass
 	public static void initialize(){
 		properQueryResponse = "{\"meta\":{\"code\":200},"

@@ -39,7 +39,7 @@ public class FoursquareResult {
 			catch (JSONException exception){
 				System.err.println("A portion of the JSON could not be parsed. The parser claims:\n"
 						+ exception.getMessage() + "\n"
-						+ "All results up to this point (if any) have been stored.");
+						+ "All results up to this point (if any) have been stored. \n");
 						allJSONParsed = false;
 			}
 			if (allJSONParsed){
@@ -51,7 +51,7 @@ public class FoursquareResult {
 				}
 				catch (Exception exception){
 					System.err.println("The format of the query response was different than expected. The response's header objects were assumed to be [\"meta\", \"notifications\", \"response\"]\n"
-										+ "but the header objects " + deserializedResponse.keySet() + " were found instead. Note that this FoursquareResult will contain no entries.");
+										+ "but the header objects " + deserializedResponse.keySet() + " were found instead. Note that this FoursquareResult will contain no entries. \n");
 					formatCorrect = false;
 				}
 				if (formatCorrect) {
@@ -66,7 +66,7 @@ public class FoursquareResult {
 						catch (JSONException exception){
 							System.err.println("A portion of the JSON could not be parsed. The parser claims:\n"
 												+ exception.getMessage() + "\n"
-												+ "All results up to this point (if any) have been stored.");
+												+ "All results up to this point (if any) have been stored. \n");
 							businessJSONParsed = false;
 						}
 						if (businessJSONParsed){
@@ -98,7 +98,7 @@ public class FoursquareResult {
 		// if the user tries to access a result that doesn't exist, warn them of the result
 		if (resultNumber > getNumberOfResults() || resultNumber <= 0){
 			System.err.println("Warning: the resultNumber must be between one and the integer returned by getNumberOfResults(), inclusive.\n"
-								+ "Be aware that the result will be null.");
+								+ "Be aware that the result will be null. \n");
 			Business nullBusiness = null;
 			return nullBusiness;
 		}

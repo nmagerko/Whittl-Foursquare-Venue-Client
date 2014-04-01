@@ -37,8 +37,7 @@ public class FoursquareClient {
 	private Scanner scanner;
 	
 	/**
-	 * Creates a new Foursquare client instance, which requires the 
-	 * user to validate the client after initialization
+	 * Creates a new Foursquare client instance
 	 */
 	public FoursquareClient(){
 		// initialize all fields, and ask the user to validate the client
@@ -50,7 +49,6 @@ public class FoursquareClient {
 									  .apiSecret(CLIENT_SECRET)
 									  .callback(REDIRECT_URL)
 									  .build();
-		validateClient();
 	}
 	
 	/**
@@ -60,28 +58,28 @@ public class FoursquareClient {
 	 * @return	a FoursquareResult instance, representing the businesses that were returned
 	 */
 	public FoursquareResult venueSearch(FoursquareSearchParams params){
-		// how many time the client has failed to validate (this helps to make the output prettier)
-		int failureCount = 0;
-		// if the access token is null (this is very unlikely), ask the user to revalidate
-		// there is really no way around asking for validation again
-		if (accessToken == null){
-			while (accessToken == null){
-				if (failureCount == 0){	
-					// if this is the first failure, print the validation requirement, and increment failureCount (this only needs to be done once)
-					System.err.println("The client must be validated before it will search for venues. Please revalidate. \n");
-					failureCount++;
-				}
-				validateClient();
-			}
-		}
 		// if the search parameters are not valid, tell the user why
 		// do not automatically set these parameters, or the user may believe that all is well, even if an error is printed
 		if (!params.searchParamsValid()){
 			System.err.println(
 					"Warning: Neither the \"ll\" parameter nor the \"near\" parameter was found in conjunction with the \"query\" parameter.\n"
 					+ "Consult https://developer.foursquare.com/docs/venues/search for more information. Note that the FoursquareResult \n" 
-					+ "will contain no entries");
+					+ "will contain no entries \n");
 			return new FoursquareResult("");
+		}
+		// how many times the client has failed to validate (prevents an infinite loop)
+		int failureCount = 0;
+		// ask the user to validate before searching, if necessary
+		if (accessToken == null){
+			while (accessToken == null && failureCount < 5){
+				validateClient();
+				failureCount++;
+			}
+			// if the user failed to authenticate
+			if (accessToken == null){
+				System.err.println("Authentication failed permanently. Note that the FoursquareResult will contain no entries \n");
+				return new FoursquareResult("");
+			}
 		}
 		// otherwise, create a new GET request for the venues
 		OAuthRequest request = new OAuthRequest(Verb.GET, requestURLBuilder(params.getSearchParams()));
@@ -94,7 +92,7 @@ public class FoursquareClient {
 		if (response.getCode() != HTTP_OK){
 			System.err.println("Warning: The request returned with HTTP code " + response.getCode() + ".\n"
 								+ "The response was: " + response.getBody() + "\n"
-								+ "Note that the FoursquareResult will contain no entries.");
+								+ "Note that the FoursquareResult will contain no entries. \n");
 			return new FoursquareResult("");
 		}
 		// otherwise, return the result with the full body
@@ -102,8 +100,10 @@ public class FoursquareClient {
 	}
 	
 	/**
-	 * Allows the client access to the user's personal information
-	 * (not necessary for venue searches, yet could be helpful in the future)
+	 * Allows the client access to the user's personal information. The
+	 * process that follows is a modification of the process detailed on
+	 * Scribe's site, as instructed for use by the assignment spec
+	 * (note that this is not necessary for venue searches, yet could be helpful in the future)
 	 */
 	private void validateClient(){
 		// get Foursquare's authorization url
@@ -122,8 +122,7 @@ public class FoursquareClient {
 		}
 		catch (Exception exception){
 			// otherwise, tell the user that they will have to sign in when they search
-			System.err.println("Warning: An error occurred during validation (check your request token?). Any searches requested will require a successful validation, \n"
-								+ "which may be performed at a later time. \n");
+			System.err.println("Warning: An error occurred during validation (check your request token?). \n");
 		}
 	}
 	
