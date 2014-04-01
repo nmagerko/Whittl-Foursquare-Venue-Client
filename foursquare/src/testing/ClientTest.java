@@ -23,10 +23,9 @@ import client.FoursquareSearchParams;
  * come up with a mocking technique). A successful search
  * test is excluded, since I believe tests that 
  * contact a database should be part of the integration
- * tests. FoursquareResult is not mocked, since its mocking
- * will not directly affect the venueSearch() method, other than
- * confusing the output to the tester
- * @author Nick Magerko
+ * tests. FoursquareResult is not mocked, since it is my
+ * belief that keeping it in the mix ensures that the assertion
+ * checking is correct
  *
  */
 public class ClientTest {
